@@ -1,0 +1,21 @@
+# PowerShell — Docker WordPress + MySQL (a reference deployment, not necessarily the Java GitHub application)
+docker pull mysql:8.0
+docker pull wordpress:php8.3-apache
+docker network create se-lab-net
+docker volume create se-mysql-data
+docker volume create se-wordpress-data
+# Replace credentials. A strong password is needed; the same DB password must be used in both containers.
+docker run -d --name se-mysql --network se-lab-net --restart unless-stopped -e MYSQL_DATABASE=wordpress -e MYSQL_USER=wpuser -e MYSQL_PASSWORD=CHANGE_ME_DB -e MYSQL_ROOT_PASSWORD=CHANGE_ME_ROOT -v se-mysql-data:/var/lib/mysql mysql:8.0
+docker run -d --name se-wordpress --network se-lab-net --restart unless-stopped -p 8086:80 -e WORDPRESS_DB_HOST=se-mysql:3306 -e WORDPRESS_DB_USER=wpuser -e WORDPRESS_DB_PASSWORD=CHANGE_ME_DB -e WORDPRESS_DB_NAME=wordpress -v se-wordpress-data:/var/www/html wordpress:php8.3-apache
+docker ps
+docker logs se-mysql
+docker logs se-wordpress
+# Browser: http://localhost:8086 (complete WordPress first-run setup)
+# Recovery test: create a test page first; then stop/start the database and refresh after it is ready.
+docker stop se-mysql
+docker start se-mysql
+# Persistence test: remove and recreate MySQL USING THE SAME volume; DO NOT remove the volume.
+docker rm -f se-mysql
+docker run -d --name se-mysql --network se-lab-net --restart unless-stopped -e MYSQL_DATABASE=wordpress -e MYSQL_USER=wpuser -e MYSQL_PASSWORD=CHANGE_ME_DB -e MYSQL_ROOT_PASSWORD=CHANGE_ME_ROOT -v se-mysql-data:/var/lib/mysql mysql:8.0
+# Inspect: docker volume inspect se-mysql-data ; docker logs se-mysql
+# Beware: MySQL initialization variables apply ONLY on first creation of an empty data volume.

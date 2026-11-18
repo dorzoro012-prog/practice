@@ -1,0 +1,35 @@
+# File: compose.yaml — reference Flask + Nginx scaffold, not an assertion about GitHub repo structure.
+services:
+  api:
+    build: ./api
+    ports:
+      - "5000:5000"
+  web:
+    image: nginx:alpine
+    ports:
+      - "8088:80"  # use "80:80" only if host port 80 is free
+    volumes:
+      - ./site:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+# File: api/Dockerfile
+# FROM python:3.12-slim
+# WORKDIR /app
+# COPY requirements.txt .
+# RUN pip install --no-cache-dir -r requirements.txt
+# COPY . .
+# CMD ["python", "app.py"]
+# File: api/app.py  (minimal runnable example; adapt to actual Flask repository)
+# from flask import Flask
+# app = Flask(__name__)
+# @app.get('/health')
+# def health(): return {'status':'ok'}
+# if __name__ == '__main__': app.run(host='0.0.0.0', port=5000)
+# File: api/requirements.txt -> flask>=3,<4
+# File: site/index.html -> <h1>Food System frontend</h1>
+# PowerShell:
+# docker compose up -d --build
+# docker compose ps
+# curl.exe http://localhost:5000/health
+# Browser http://localhost:8088
+# Nginx container does not proxy to Flask automatically; add nginx.conf if API reverse-proxy is required.

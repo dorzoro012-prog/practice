@@ -1,0 +1,18 @@
+# File: compose.yaml — web image + Nagios in same Compose network
+services:
+  web:
+    image: YOUR_IMAGE:1
+    ports:
+      - "8090:8080"
+  nagios:
+    image: jasonrivers/nagios:latest
+    ports:
+      - "8085:80"
+    depends_on:
+      - web
+# PowerShell: docker compose up -d ; docker compose ps ; docker compose logs nagios
+# Browser: http://localhost:8090 , http://localhost:8085/nagios/
+# To monitor the web container from Nagios, configure check_http to target host 'web'
+# and its INTERNAL port 8080, not localhost:8090 (localhost inside Nagios is Nagios itself).
+# Container network connectivity alone does not automatically create Nagios service checks.
+# Nagios image may require configuration mounted into its documented config folder.

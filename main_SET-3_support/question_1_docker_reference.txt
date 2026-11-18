@@ -1,0 +1,16 @@
+# File: Dockerfile — ONLY for an actual Maven WAR artifact (check pom.xml packaging).
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /src
+COPY pom.xml .
+COPY src ./src
+RUN mvn -B clean package
+FROM tomcat:9.0-jdk17-temurin
+RUN rm -rf /usr/local/tomcat/webapps/ROOT
+COPY --from=build /src/target/*.war /usr/local/tomcat/webapps/ROOT.war
+EXPOSE 8080
+# IMPORTANT: Tomcat 9 is for javax.servlet apps; jakarta.servlet apps normally require Tomcat 10+.
+# Confirm Java / servlet requirements and build output BEFORE using this Dockerfile.
+# Run: docker build -t YOUR_DOCKERHUB_USER/se-lab-app:1 .
+# Run: docker run -d --name se-java-web -p 8090:8080 YOUR_DOCKERHUB_USER/se-lab-app:1
+# Verify: docker logs se-java-web ; browse http://localhost:8090/
+# Maven output pattern must match exactly ONE WAR; otherwise rename/copy the expected file.

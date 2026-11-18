@@ -1,0 +1,33 @@
+# File: compose.yaml — replace YOUR_IMAGE:1 (must already exist on Docker Hub).
+# This starts a web image plus a standalone MySQL DB. Web image MUST be configured separately
+# to use DB hostname 'db'; do not assume application supports MYSQL_* variables.
+services:
+  web:
+    image: YOUR_IMAGE:1
+    ports:
+      - "8090:8080" # match app's real port
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: CHANGE_ME_ROOT
+      MYSQL_DATABASE: seapp
+      MYSQL_USER: seuser
+      MYSQL_PASSWORD: CHANGE_ME_DB
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      retries: 15
+volumes:
+  dbdata:
+# PowerShell: docker compose up -d ; docker compose ps ; docker compose logs --tail=60
+# Browser: http://localhost:8090 (only after confirming app is configured for DB)
+# Stop/start: docker compose stop ; docker compose start
+# Add/change service: docker compose up -d
+# Stop just web: docker compose stop web
+# Cleanup without deleting data: docker compose down
+# CHECK application-specific JDBC URL, DB schema and image's actual port BEFORE use.

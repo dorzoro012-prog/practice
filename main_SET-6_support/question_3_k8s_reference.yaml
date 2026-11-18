@@ -1,0 +1,53 @@
+# File: deployment.yaml — replace YOUR_IMAGE with a publicly pullable image you've already built/pushed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: se-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: se-app
+  template:
+    metadata:
+      labels:
+        app: se-app
+    spec:
+      containers:
+        - name: app
+          image: YOUR_IMAGE:1
+          ports:
+            - containerPort: 8080 # Change to application's real listening port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: se-app-service
+spec:
+  type: NodePort
+  selector:
+    app: se-app
+  ports:
+    - port: 80
+      targetPort: 8080 # Match containerPort/app listener
+      nodePort: 30080 # Allowed default range: 30000–32767
+# PowerShell (from folder with deployment.yaml):
+# minikube start --driver=docker
+# kubectl get nodes
+# kubectl apply -f deployment.yaml
+# kubectl rollout status deployment/se-app
+# kubectl get deploy,pods,svc -o wide
+# minikube service se-app-service --url
+# kubectl scale deployment/se-app --replicas=5    # Use 4 if question asks 4
+# kubectl get pods -l app=se-app -o wide
+# kubectl delete pod POD_NAME                    # Deployment creates a replacement
+# kubectl set image deployment/se-app app=YOUR_IMAGE:2
+# kubectl rollout status deployment/se-app
+# kubectl rollout history deployment/se-app
+# kubectl rollout undo deployment/se-app
+# kubectl describe pod POD_NAME
+# kubectl logs POD_NAME --previous
+# kubectl get events --sort-by=.metadata.creationTimestamp
+# kubectl get endpoints se-app-service
+# kubectl delete -f deployment.yaml
+# Note: pods should be READY/RUNNING; Pending or ImagePullBackOff requires troubleshooting.

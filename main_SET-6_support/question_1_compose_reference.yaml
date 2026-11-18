@@ -1,0 +1,44 @@
+# File: compose.yaml — store in a fresh folder; replace both passwords before running.
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: CHANGE_ME_DB
+      MYSQL_ROOT_PASSWORD: CHANGE_ME_ROOT
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      retries: 15
+  wordpress:
+    image: wordpress:php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8086:80" # Host port 8086 avoids a common 8080 collision
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: CHANGE_ME_DB
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wpdata:/var/www/html
+volumes:
+  dbdata:
+  wpdata:
+# PowerShell from folder containing compose.yaml:
+# docker compose up -d
+# docker compose ps
+# docker compose logs --tail 50
+# docker compose stop       # stop, don't remove
+# docker compose start      # restart same containers
+# docker compose up -d      # apply added/changed services
+# docker compose stop wordpress  # stop just wordpress
+# docker compose down       # remove containers/network, preserve volumes
+# Do NOT run 'docker compose down -v' if preserving data.
